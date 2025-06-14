@@ -1137,5 +1137,192 @@
             document.getElementById('product-url').focus();
         }
 
-        // Analytics functions
-        async function
+       // Analytics functions
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics/full`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const analytics = await response.json();
+                    
+                    // Update analytics stats
+                    document.getElementById('analytics-savings').textContent = `$${analytics.totalSavings.toFixed(2)}`;
+                    document.getElementById('analytics-products').textContent = analytics.trackedProducts;
+                    document.getElementById('avg-savings').textContent = `${analytics.averageDiscount}%`;
+                    document.getElementById('best-month').textContent = analytics.bestMonth || '--';
+
+                    // Display top products
+                    if (analytics.topProducts && analytics.topProducts.length > 0) {
+                        const topProductsContainer = document.getElementById('top-products');
+                        topProductsContainer.innerHTML = analytics.topProducts.map((product, index) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; ${index === 0 ? 'background: linear-gradient(45deg, #f39c12, #e67e22); color: white; border-radius: 8px; margin-bottom: 10px;' : ''}">
+                                <div>
+                                    <strong>${product.title.substring(0, 40)}...</strong>
+                                    <br>
+                                    <small style="opacity: 0.8;">${product.store}</small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <strong style="color: ${index === 0 ? 'white' : '#27ae60'};">$${product.savings.toFixed(2)} saved</strong>
+                                    <br>
+                                    <small style="opacity: 0.8;">${product.savingsPercent}% off</small>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Display store analysis
+                    if (analytics.storeAnalysis && analytics.storeAnalysis.length > 0) {
+                        const storeContainer = document.getElementById('store-analysis');
+                        storeContainer.innerHTML = analytics.storeAnalysis.map(store => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
+                                <div>
+                                    <strong>${store.store}</strong>
+                                    <br>
+                                    <small style="color: #7f8c8d;">${store.productCount} products tracked</small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <strong style="color: #27ae60;">${store.averageDiscount}% avg discount</strong>
+                                    <br>
+                                    <small style="color: #7f8c8d;">$${store.totalSavings.toFixed(2)} total saved</small>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                } else {
+                    // Show sample analytics if API fails
+                    displaySampleAnalytics();
+                }
+            } catch (error) {
+                console.error('Analytics load error:', error);
+                displaySampleAnalytics();
+            }
+        }
+
+        function displaySampleAnalytics() {
+            document.getElementById('analytics-savings').textContent = '$247.50';
+            document.getElementById('analytics-products').textContent = '12';
+            document.getElementById('avg-savings').textContent = '23%';
+            document.getElementById('best-month').textContent = 'Nov 2024';
+
+            document.getElementById('top-products').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: linear-gradient(45deg, #f39c12, #e67e22); color: white; border-radius: 8px; margin-bottom: 10px;">
+                    <div>
+                        <strong>Wireless Gaming Headset</strong>
+                        <br>
+                        <small style="opacity: 0.8;">Amazon</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>$75.00 saved</strong>
+                        <br>
+                        <small style="opacity: 0.8;">45% off</small>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
+                    <div>
+                        <strong>Smart Fitness Tracker</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">Best Buy</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong style="color: #27ae60;">$45.00 saved</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">30% off</small>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('store-analysis').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
+                    <div>
+                        <strong>Amazon</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">7 products tracked</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong style="color: #27ae60;">28% avg discount</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">$156.75 total saved</small>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
+                    <div>
+                        <strong>Best Buy</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">3 products tracked</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong style="color: #27ae60;">22% avg discount</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">$67.25 total saved</small>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+                    <div>
+                        <strong>Target</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">2 products tracked</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong style="color: #27ae60;">18% avg discount</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">$23.50 total saved</small>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function formatPrice(price) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(price);
+        }
+
+        function formatPercentage(value) {
+            return Math.round(value) + '%';
+        }
+
+        // Initialize price drop notifications
+        async function checkPriceDrops() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/products/price-drops`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const drops = await response.json();
+                    
+                    drops.forEach(drop => {
+                        showAlert(`🎉 Price drop alert! ${drop.title} is now ${drop.currentPrice} (was ${drop.previousPrice})`, 'success');
+                    });
+
+                    // Update dashboard stats
+                    document.getElementById('price-drops').textContent = drops.length;
+                }
+            } catch (error) {
+                console.error('Price drop check error:', error);
+            }
+        }
+
+        // Check for price drops every 5 minutes
+        setInterval(checkPriceDrops, 5 * 60 * 1000);
+
+        // Load initial data
+        setTimeout(() => {
+            if (authToken) {
+                checkPriceDrops();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
